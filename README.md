@@ -1,5 +1,5 @@
 # WeChat SDK for Go
-[![原始仓库及基本说明](https://github.com/silenceper/wechat)
+[!原始仓库及基本说明](https://github.com/silenceper/wechat)
 
 阅读本文之前,相信您应该看过了读过了原始仓库silenceper/wechat相关说明 。
 
