@@ -115,7 +115,7 @@ func (r *Redis) Delete(key string) error {
 //HGetWxUser 查询缓存的授权登录用户信息
 //func HGetWxUser(ip, agentKey string) (string, error) {
 
-//Get 获取一个值 ,reply 是指针类型
+//HGet 从hash map中获取一个值 ,reply 是指针类型
 func (r *Redis) HGet(key,field string ,reply interface{})error {
 	conn := r.conn.Get()
 	defer conn.Close()
@@ -133,7 +133,7 @@ func (r *Redis) HGet(key,field string ,reply interface{})error {
 	return nil
 }
 
- //func (r *Redis)  HSetWxUser(ip, agentKey, wx string) error {
+//func (r *Redis)  HSetWxUser(ip, agentKey, wx string) error {
 
 //HSetWxUser 设置微信用户信息
 func (r *Redis)  HSetWxUser(ip, agentKey string, user interface{}) error {
@@ -185,3 +185,21 @@ func (r *Redis)  HSetWxUser(ip, agentKey string, user interface{}) error {
 	return err
 }
 
+
+//Get 获取一个值
+func (r *Redis) GetWithErrorBack(key string,reply interface{}) error {
+	conn := r.conn.Get()
+	defer conn.Close()
+
+	var data []byte
+	var err error
+	if data, err = redis.Bytes(conn.Do("GET", key)); err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(data, &reply); err != nil {
+		return err
+	}
+
+	return nil
+}
