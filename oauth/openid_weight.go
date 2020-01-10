@@ -101,7 +101,7 @@ func (oauth *Oauth) DecreaseOpenidWeight(openid string, num int64) error {
 		return nil
 	}
 
-	_, err = redisCache.DecrBy(redisKey, num)
+	err = redisCache.DecrBy(redisKey, num)
 	if err != nil {
 		return err
 	}
