@@ -7,45 +7,44 @@ import (
 	"strings"
 )
 
-type  Direction struct {
-	Ip,RedirectURI, Scope, State string
+type Direction struct {
+	Ip, RedirectURI, Scope, State string
 }
 
 //最快获取微信用户信息的跳转方法
-func  (oauth *Oauth) OauthWithCacheInfo(writer http.ResponseWriter, req *http.Request,m Direction, f func(user OauthUser)) {
+func (oauth *Oauth) OauthWithCacheInfo(writer http.ResponseWriter, req *http.Request, m Direction, f func(user OauthUser)) {
 
 	agentKey, exist := FilterRedisKeyOfUserAgent(req)
 	if !exist {
-		_=oauth.Redirect(writer, req, m.RedirectURI, m.Scope,  m.State)
+		_ = oauth.redirect(writer, req, m.RedirectURI, m.Scope, m.State)
 		return
 	}
 
-	var wechatUser   OauthUser
+	var wechatUser OauthUser
 
 	err1 := oauth.Cache.HGet(m.Ip, agentKey, &wechatUser)
 	if err1 != nil {
 		log.Println(err1)
-		_=oauth.Redirect(writer,req,  m.RedirectURI,  m.Scope,  m.State)
+		_ = oauth.redirect(writer, req, m.RedirectURI, m.Scope, m.State)
 		return
 	}
 
 	if len(wechatUser.Openid()) == 0 {
-		_=oauth.Redirect(writer, req, m.RedirectURI,  m.Scope,  m.State)
+		_ = oauth.redirect(writer, req, m.RedirectURI, m.Scope, m.State)
 		return
 	}
 
-		// 取出openid对应的信任度
-		weight, err2 := oauth.GetOpenidWeight(wechatUser.Openid())
-		if err2 != nil {
-		 log.Println(err2)
-			_=oauth.Redirect(writer, req,  m.RedirectURI,  m.Scope,  m.State)
-			return
-		}
-		if weight < 50 {
-			_=oauth.Redirect(writer, req,  m.RedirectURI,  m.Scope,  m.State)
-			return
-		}
- 
+	// 取出openid对应的信任度
+	weight, err2 := oauth.GetOpenidWeight(wechatUser.Openid())
+	if err2 != nil {
+		log.Println(err2)
+		_ = oauth.redirect(writer, req, m.RedirectURI, m.Scope, m.State)
+		return
+	}
+	if weight < 50 {
+		_ = oauth.redirect(writer, req, m.RedirectURI, m.Scope, m.State)
+		return
+	}
 
 	//触发信任度检查机制
 	//1. 更新redis中本人的访问时间
@@ -63,7 +62,7 @@ func (oauth *Oauth) GetOpenidWeight(openid string) (int, error) {
 	redisKey := "openidweight:" + openid
 
 	var value string
-err := oauth.Cache.GetWithErrorBack(redisKey,value)
+	err := oauth.Cache.GetWithErrorBack(redisKey, value)
 	if err != nil {
 		return 0, err
 	}
@@ -79,8 +78,6 @@ err := oauth.Cache.GetWithErrorBack(redisKey,value)
 	return oldWeight, nil
 
 }
-
-
 
 func FilterRedisKeyOfUserAgent(req *http.Request) (key string, exist bool) {
 	agentStr := req.Header["User-Agent"]
@@ -104,5 +101,5 @@ func FilterRedisKeyOfUserAgent(req *http.Request) (key string, exist bool) {
 }
 
 type OauthUser interface {
-	  Openid()string
+	Openid() string
 }
