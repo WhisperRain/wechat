@@ -86,20 +86,12 @@ func PersonCenterOauthSuccess(c *gin.Context) {
 		return
 	}
 
-	oauth := Wc.GetOauth()
-
-	resToken, err := oauth.GetUserAccessToken(code)
+	userInfo, err := GetAndSaveOauthUserInfo(code, c)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
-	//getUserInfo
-	userInfo, err := oauth.GetUserInfo(resToken.AccessToken, resToken.OpenID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return
-	}
 
 	OperationAfterOauthSuccess(c, userInfo)
 }
@@ -109,25 +101,43 @@ func getDomainUrl() string {
 }
 
 func OperationAfterOauthSuccess(c *gin.Context, user oauth.OauthUser) {
-	//保存授权登录获取的用户信息到缓存
-	err := saveOauthUserInfoToRedis(c, user)
-	if err != nil {
-		log.Println(err) //出于高可用，这里并不会return
-	}
-
 	//TODO 授权登录成功以后的操作，比如带着用户信息重定向到前端网页
 
 }
 
-func saveOauthUserInfoToRedis(c *gin.Context, user oauth.OauthUser) error {
+func GetAndSaveOauthUserInfo(code string, c *gin.Context) (userInfo oauth.UserInfo,err error) {
+	oauth := Wc.GetOauth()
 
-	agentKey, exist := oauth.FilterRedisKeyOfUserAgent(c.Request)
-
-	if !exist {
-		header := fmt.Sprint(c.Request.Header)
-		return errors.New("不标准的网络请求 FilterRedisKeyOfUserAgent error: " + header)
+	resToken, err := oauth.GetUserAccessToken(code)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
 	}
 
-	return Wc.GetOauth().Cache.HSetWxUser(c.ClientIP(), agentKey, user)
+	//getUserInfo
+	userInfo, err = oauth.GetUserInfo(resToken.AccessToken, resToken.OpenID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		return
+	}
+
+	//保存授权登录获取的用户信息到缓存
+	saveOauthUserInfoToRedis(c, userInfo)
+
+	return
+}
+
+func saveOauthUserInfoToRedis(c *gin.Context, user oauth.OauthUser) {
+
+	agentKey, exist := oauth.FilterRedisKeyOfUserAgent(c.Request)
+	if !exist {
+		header := fmt.Sprint(c.Request.Header)
+		log.Println("不标准的网络请求 FilterRedisKeyOfUserAgent error: " + header)
+	}
+
+	err := Wc.GetOauth().Cache.HSetWxUser(c.ClientIP(), agentKey, user)
+	if err != nil {
+		log.Println(err) //出于高可用，这里并不会return
+	}
 
 }
