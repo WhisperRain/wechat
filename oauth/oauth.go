@@ -143,6 +143,13 @@ type UserInfo struct {
 	Unionid    string   `json:"unionid"`
 }
 
+
+
+//GetOpenID  返回UserInfo的openid，
+func (user UserInfo) GetOpenID()string{
+	return user.OpenID
+}
+
 //GetUserInfo 如果scope为 snsapi_userinfo 则可以通过此方法获取到用户基本信息
 func (oauth *Oauth) GetUserInfo(accessToken, openID string) (result UserInfo, err error) {
 	urlStr := fmt.Sprintf(userInfoURL, accessToken, openID)
@@ -161,3 +168,4 @@ func (oauth *Oauth) GetUserInfo(accessToken, openID string) (result UserInfo, er
 	}
 	return
 }
+
