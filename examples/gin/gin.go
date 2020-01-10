@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/silenceper/wechat"
+	"github.com/silenceper/wechat/cache"
 	"github.com/silenceper/wechat/message"
 	"github.com/silenceper/wechat/oauth"
 	"net/http"
 )
+
 const PersoncenterOauthSuccessUrl = "/oauth/personcenter/success"
 
 var Wc = wechat.NewWechat(&wechat.Config{
@@ -15,18 +17,25 @@ var Wc = wechat.NewWechat(&wechat.Config{
 	AppSecret:      "your app secret",
 	Token:          "your token",
 	EncodingAESKey: "your encoding aes key",
+	Cache: cache.NewRedis(&cache.RedisOpts{
+		Host:        "127.0.0.1:6379",
+		Password:    "your redis password",
+		MaxIdle:     10,
+		IdleTimeout: 5,
+	}),
 })
 
-func getDomainUrl() string {
-	return "http://127.0.0.1:8001"
+func init() {
+	Wc.Context.FastOauthEnable=true
 }
+
 
 func main() {
 	router := gin.Default()
 
 	router.Any("/", hello)
 
- 	{
+	{
 		router.GET("/oauth/personcenter/begin", PersonCenterOauthBegin)
 		router.GET(PersoncenterOauthSuccessUrl, PersonCenterOauthSuccess)
 	}
@@ -56,7 +65,6 @@ func hello(c *gin.Context) {
 	server.Send()
 }
 
-
 //PersonCenterBeginOauth  开始授权登录重定向，获取一次性code
 func PersonCenterOauthBegin(c *gin.Context) {
 
@@ -78,7 +86,7 @@ func PersonCenterOauthBegin(c *gin.Context) {
 
 //PersonCenterRedirectToFrontPage 授权登录拿到了code以后，用code缓存换取微信用户信息，并执行后续操作
 func PersonCenterOauthSuccess(c *gin.Context) {
-	o:=Wc.GetOauth()
+	o := Wc.GetOauth()
 
 	//通过code换取access_token
 	code := c.Query("code")
@@ -111,3 +119,9 @@ func OperationAfterOauthSuccess(c *gin.Context, user oauth.OauthUser) {
 	//TODO 授权登录成功以后的操作，比如带着用户信息重定向到前端网页
 	c.JSON(http.StatusOK, gin.H{"data": user})
 }
+
+
+func getDomainUrl() string {
+	return "http://127.0.0.1:8001"
+}
+

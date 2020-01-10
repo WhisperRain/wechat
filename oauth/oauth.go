@@ -45,7 +45,7 @@ func (oauth *Oauth) GetWebAppRedirectURL(redirectURI, scope, state string) (stri
 }
 
 //Redirect 跳转到网页授权
-func (oauth *Oauth) redirect(writer http.ResponseWriter, req *http.Request, redirectURI, scope, state string) error {
+func (oauth *Oauth) Redirect(writer http.ResponseWriter, req *http.Request, redirectURI, scope, state string) error {
 	location, err := oauth.GetRedirectURL(redirectURI, scope, state)
 	if err != nil {
 		return err

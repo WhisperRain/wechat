@@ -17,6 +17,7 @@ type Context struct {
 	PayNotifyURL   string
 	PayKey         string
 
+	FastOauthEnable bool //开启快速授权登录的功能
 	Cache cache.Cache
 
 	Writer  http.ResponseWriter

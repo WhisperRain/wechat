@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"github.com/silenceper/wechat/cache"
 	"io/ioutil"
 	"log"
 	"reflect"
@@ -109,9 +110,13 @@ func (srv *Server) handleRequest() (reply *message.Reply, err error) {
 	srv.requestMsg = mixMessage
 	reply = srv.messageHandler(mixMessage)
 
-	if mixMessage.Event == message.EventView { //点击访问网页，先调用快速授权登录模块，然后异步进行身份认证
-		//触发信任度检查机制
-		go srv.RefreshOpenidCallBackTime(string(mixMessage.FromUserName))
+	if mixMessage.Event == message.EventView && srv.FastOauthEnable==true{ //点击访问网页，先调用快速授权登录模块，然后异步进行身份认证
+ 		switch srv.Cache.(type) {
+		case *cache.Redis:
+			//刷新openid对应的用户刷新时间
+			go srv.RefreshOpenidCallBackTime(string(mixMessage.FromUserName))
+			return
+		}
 	}
 
 	return
