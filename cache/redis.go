@@ -52,21 +52,21 @@ func (r *Redis) SetConn(conn *redis.Pool) {
 }
 
 //Get 获取一个值
-func (r *Redis) Get(key string) interface{} {
+func (r *Redis) Get(key string, reply interface{}) error {
 	conn := r.conn.Get()
 	defer conn.Close()
 
 	var data []byte
 	var err error
 	if data, err = redis.Bytes(conn.Do("GET", key)); err != nil {
-		return nil
-	}
-	var reply interface{}
-	if err = json.Unmarshal(data, &reply); err != nil {
-		return nil
+		return err
 	}
 
-	return reply
+	if err = json.Unmarshal(data, &reply); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 //Set 设置一个值
@@ -85,19 +85,19 @@ func (r *Redis) Set(key string, val interface{}, timeout time.Duration) (err err
 }
 
 //IsExist 判断key是否存在
-func (r *Redis) IsExist(key string) (bool ,error){
+func (r *Redis) IsExist(key string) (bool, error) {
 	conn := r.conn.Get()
 	defer conn.Close()
 
 	a, err := conn.Do("EXISTS", key)
-	if err !=nil{
-		return false,err
+	if err != nil {
+		return false, err
 	}
 	i := a.(int64)
 	if i > 0 {
-		return true,nil
+		return true, nil
 	}
-	return false,nil
+	return false, nil
 }
 
 //Delete 删除
@@ -116,13 +116,13 @@ func (r *Redis) Delete(key string) error {
 //func HGetWxUser(ip, agentKey string) (string, error) {
 
 //HGet 从hash map中获取一个值 ,reply 是指针类型
-func (r *Redis) HGet(key,field string ,reply interface{})error {
+func (r *Redis) HGet(key, field string, reply interface{}) error {
 	conn := r.conn.Get()
 	defer conn.Close()
 
 	var data []byte
 	var err error
-	if data, err = redis.Bytes(conn.Do("HGET", key,field)); err != nil {
+	if data, err = redis.Bytes(conn.Do("HGET", key, field)); err != nil {
 		return err
 	}
 
@@ -136,7 +136,7 @@ func (r *Redis) HGet(key,field string ,reply interface{})error {
 //func (r *Redis)  HSetWxUser(ip, agentKey, wx string) error {
 
 //HSetWxUser 设置微信用户信息
-func (r *Redis)  HSetWxUser(ip, agentKey string, user interface{}) error {
+func (r *Redis) HSetWxUser(ip, agentKey string, user interface{}) error {
 
 	exist, err := r.IsExist(ip)
 	if err != nil {
@@ -169,9 +169,9 @@ func (r *Redis)  HSetWxUser(ip, agentKey string, user interface{}) error {
 		//pl.Expire(ip, expireTime)
 		//_, err = pl.Exec()
 
-		_=conn.Send("MULTI")
-		_=conn.Send("HSET", ip, agentKey, data)
-		_=conn.Send("EXPIRE",  int64(expireTime) )
+		_ = conn.Send("MULTI")
+		_ = conn.Send("HSET", ip, agentKey, data)
+		_ = conn.Send("EXPIRE", int64(expireTime))
 		_, err := conn.Do("EXEC")
 		if err != nil {
 			return err
@@ -179,27 +179,8 @@ func (r *Redis)  HSetWxUser(ip, agentKey string, user interface{}) error {
 		return nil
 	}
 
-
 	_, err = conn.Do("HSET", ip, agentKey, data)
 
 	return err
 }
 
-
-//Get 获取一个值
-func (r *Redis) GetWithErrorBack(key string,reply interface{}) error {
-	conn := r.conn.Get()
-	defer conn.Close()
-
-	var data []byte
-	var err error
-	if data, err = redis.Bytes(conn.Do("GET", key)); err != nil {
-		return err
-	}
-
-	if err = json.Unmarshal(data, &reply); err != nil {
-		return err
-	}
-
-	return nil
-}

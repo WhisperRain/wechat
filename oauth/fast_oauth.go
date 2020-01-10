@@ -11,6 +11,11 @@ type Direction struct {
 	Ip, RedirectURI, Scope, State string
 }
 
+type OauthUser interface {
+	GetOpenID() string
+}
+
+
 //最快获取微信用户信息的跳转方法
 func (oauth *Oauth) FastOauthWithCache(writer http.ResponseWriter, req *http.Request, m Direction, f func(user OauthUser)) {
 
@@ -100,6 +105,17 @@ func FilterRedisKeyOfUserAgent(req *http.Request) (key string, exist bool) {
 	return "", false
 }
 
-type OauthUser interface {
-	GetOpenID() string
+
+func (oauth *Oauth)  SaveOauthUserInfoToRedis(req *http.Request,ip string, user OauthUser) {
+
+	agentKey, exist := FilterRedisKeyOfUserAgent(req)
+	if !exist {
+		log.Println("不标准的网络请求 FilterRedisKeyOfUserAgent")
+	}
+
+	err := oauth.Cache.HSetWxUser(ip, agentKey, user)
+	if err != nil {
+		log.Println(err) //出于高可用，这里并不会return
+	}
+
 }
