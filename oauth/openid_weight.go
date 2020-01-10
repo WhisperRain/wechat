@@ -23,18 +23,18 @@ func (oauth *Oauth) ChangeUserOpenidWeight(loginOpenid string) {
 	// 5s中之后检查本人的快速授权登录的记录是否存在，不存在的话，此openid的信任度-30
 	time.Sleep(time.Second * 5)
 	localServerKey := "wechatserver:" + loginOpenid
-	var weightStr string
-	err = redisCache.GetWithErrorBack(localServerKey, &weightStr)
+	var lastCallBack string
+	err = redisCache.GetWithErrorBack(localServerKey, &lastCallBack)
 
 	if err != nil && err.Error() != "redis: nil" {
 		//如果数据不存在，那么err==redis: nil
 		log.Println(err)
 	}
-	if len(weightStr) == 0 {
-		weightStr = "0"
+	if len(lastCallBack) == 0 {
+		lastCallBack = "0"
 	}
 
-	wechatCallBack, err := strconv.Atoi(weightStr)
+	wechatCallBack, err := strconv.Atoi(lastCallBack)
 	if err != nil {
 		log.Println(err)
 	}
