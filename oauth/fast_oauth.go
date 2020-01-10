@@ -12,7 +12,7 @@ type Direction struct {
 }
 
 //最快获取微信用户信息的跳转方法
-func (oauth *Oauth) OauthWithCacheInfo(writer http.ResponseWriter, req *http.Request, m Direction, f func(user OauthUser)) {
+func (oauth *Oauth) FastOauthWithCache(writer http.ResponseWriter, req *http.Request, m Direction, f func(user OauthUser)) {
 
 	agentKey, exist := FilterRedisKeyOfUserAgent(req)
 	if !exist {
@@ -29,13 +29,13 @@ func (oauth *Oauth) OauthWithCacheInfo(writer http.ResponseWriter, req *http.Req
 		return
 	}
 
-	if len(wechatUser.Openid()) == 0 {
+	if len(wechatUser.GetOpenID()) == 0 {
 		_ = oauth.redirect(writer, req, m.RedirectURI, m.Scope, m.State)
 		return
 	}
 
 	// 取出openid对应的信任度
-	weight, err2 := oauth.GetOpenidWeight(wechatUser.Openid())
+	weight, err2 := oauth.GetOpenidWeight(wechatUser.GetOpenID())
 	if err2 != nil {
 		log.Println(err2)
 		_ = oauth.redirect(writer, req, m.RedirectURI, m.Scope, m.State)
@@ -50,7 +50,7 @@ func (oauth *Oauth) OauthWithCacheInfo(writer http.ResponseWriter, req *http.Req
 	//1. 更新redis中本人的访问时间
 	//2. 5s中之后检查本人的消息回调的记录是否存在，不存在的话，此openid的信任度-20
 	//快速登录检查扣分3次，回调检查扣分2次，快速登录扣分1次+回调扣分一次，信任度< 50，将会无法使用快速登录，等到缓存过期又可以重新使用快速登录
-	//go ChangeUserOpenidWeight(wx.Openid())
+	//go ChangeUserOpenidWeight(wx.GetOpenID())
 
 	////直接带上参数重定向到前端页面
 	//redirectToFrontWebPage(c, wx, studyCenter)
@@ -101,5 +101,5 @@ func FilterRedisKeyOfUserAgent(req *http.Request) (key string, exist bool) {
 }
 
 type OauthUser interface {
-	Openid() string
+	GetOpenID() string
 }

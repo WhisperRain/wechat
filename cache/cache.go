@@ -11,4 +11,6 @@ type Cache interface {
 
     HGet(key,field string ,reply interface{})error
 	GetWithErrorBack(key string,reply interface{}) error
+	HSetWxUser(ip, agentKey string, user interface{}) error
+
 }
