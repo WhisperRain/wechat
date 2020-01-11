@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/silenceper/wechat"
-	"github.com/silenceper/wechat/cache"
-	"github.com/silenceper/wechat/message"
-	"github.com/silenceper/wechat/oauth"
+	"github.com/WhisperRain/wechat"
+	"github.com/WhisperRain/wechat/cache"
+	"github.com/WhisperRain/wechat/message"
+	"github.com/WhisperRain/wechat/oauth"
 	"net/http"
 )
 

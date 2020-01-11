@@ -2,7 +2,7 @@ package oauth
 
 import (
 	"errors"
-	"github.com/silenceper/wechat/cache"
+	"github.com/WhisperRain/wechat/cache"
 	"log"
 	"net/http"
 	"strings"

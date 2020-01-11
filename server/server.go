@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"github.com/silenceper/wechat/cache"
+	"github.com/WhisperRain/wechat/cache"
 	"io/ioutil"
 	"log"
 	"reflect"
@@ -12,9 +12,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/silenceper/wechat/context"
-	"github.com/silenceper/wechat/message"
-	"github.com/silenceper/wechat/util"
+	"github.com/WhisperRain/wechat/context"
+	"github.com/WhisperRain/wechat/message"
+	"github.com/WhisperRain/wechat/util"
 )
 
 //Server struct

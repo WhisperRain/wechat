@@ -27,7 +27,7 @@ Package wechat provide wechat sdk for go
 	server.Send()
 
 
-更多信息：https://github.com/silenceper/wechat
+更多信息：https://github.com/WhisperRain/wechat
 
 */
 package wechat
