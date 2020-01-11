@@ -1,5 +1,5 @@
 # WeChat SDK for Go
-[![Build Status](https://travis-ci.org/silenceper/wechat.svg?branch=master)](https://travis-ci.org/silenceper/wechat)
+[![Build Status](https://travis-ci.org/WhisperRain/wechat.svg?branch=master)](https://travis-ci.org/WhisperRain/wechat)
 [![Go Report Card](https://goreportcard.com/badge/github.com/WhisperRain/wechat)](https://goreportcard.com/report/github.com/WhisperRain/wechat)
 [![GoDoc](http://godoc.org/github.com/WhisperRain/wechat?status.svg)](http://godoc.org/github.com/WhisperRain/wechat)
 
