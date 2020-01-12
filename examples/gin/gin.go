@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"github.com/WhisperRain/wechat"
 	"github.com/WhisperRain/wechat/cache"
 	"github.com/WhisperRain/wechat/message"
 	"github.com/WhisperRain/wechat/oauth"
+	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
@@ -26,9 +26,8 @@ var Wc = wechat.NewWechat(&wechat.Config{
 })
 
 func init() {
-	Wc.Context.FastOauthEnable=true
+	Wc.Context.FastOauthEnable = true
 }
-
 
 func main() {
 	router := gin.Default()
@@ -76,12 +75,20 @@ func PersonCenterOauthBegin(c *gin.Context) {
 		Scope:       "snsapi_userinfo",
 		State:       "random_string",
 	}
-
+	var user WechatUser
 	//快速授权登录成功，直接执行成功以后的模块
-	Wc.GetOauth().FastOauthWithCache(c.Writer, c.Request, m, func(user oauth.OauthUser) {
+	Wc.GetOauth().FastOauthWithCache(c.Writer, c.Request, m, user, func() {
 		OperationAfterOauthSuccess(c, user)
 	})
 
+}
+
+type WechatUser struct {
+	OpenID string
+}
+
+func (u WechatUser)GetOpenID() string {
+	return u.OpenID
 }
 
 //PersonCenterRedirectToFrontPage 授权登录拿到了code以后，用code缓存换取微信用户信息，并执行后续操作
@@ -120,8 +127,6 @@ func OperationAfterOauthSuccess(c *gin.Context, user oauth.OauthUser) {
 	c.JSON(http.StatusOK, gin.H{"data": user})
 }
 
-
 func getDomainUrl() string {
 	return "http://127.0.0.1:8001"
 }
-

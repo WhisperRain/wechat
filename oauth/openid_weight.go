@@ -83,19 +83,22 @@ func (oauth *Oauth) DecreaseOpenidWeight(openid string, num int64) error {
 
 	redisKey := "openidweight:" + openid
 
-	var weightStr string
-	err = redisCache.GetWithErrorBack(redisKey, &weightStr)
+	var oldWeight int
+	err = redisCache.GetWithErrorBack(redisKey, &oldWeight)
 	if err != nil {
 		return err
-	}
-	if len(weightStr) == 0 {
-		weightStr = "0"
 	}
 
-	oldWeight, err := strconv.Atoi(weightStr)
-	if err != nil {
-		return err
-	}
+	//var weightStr string
+	//
+	//if len(weightStr) == 0 {
+	//	weightStr = "0"
+	//}
+	//
+	//oldWeight, err := strconv.Atoi(weightStr)
+	//if err != nil {
+	//	return err
+	//}
 
 	if oldWeight < 50 {
 		return nil
@@ -115,20 +118,17 @@ func (oauth *Oauth) GetOpenidWeight(openid string) (int, error) {
 	}
 
 	redisKey := "openidweight:" + openid
-	var weightStr string
-	err = redisCache.GetWithErrorBack(redisKey, &weightStr)
+	var oldWeight int
+	err = redisCache.GetWithErrorBack(redisKey, &oldWeight)
 	if err != nil {
 		return 0, err
-	}
-	if len(weightStr) == 0 {
-		weightStr = "0"
 	}
 
-	oldWeight, err := strconv.Atoi(weightStr)
-	if err != nil {
-		return 0, err
-	}
+	//var weightStr string
+	//oldWeight, err := strconv.Atoi(weightStr)
+	//if err != nil {
+	//	return 0, err
+	//}
 
 	return oldWeight, nil
-
 }
