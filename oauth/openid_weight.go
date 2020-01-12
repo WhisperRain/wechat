@@ -68,7 +68,7 @@ func (oauth *Oauth) SetInitUserOpenidWeight(loginOpenid string) error {
 
 	//重新授权登录获取到的openid，信任度初始值为100
 	weightKey := "openidweight:" + loginOpenid
-	err = redisCache.Set(weightKey, "100", OpenIDWeightExpireTime)
+	err = redisCache.Set(weightKey, 100, OpenIDWeightExpireTime)
 	if err != nil {
 		return err
 	}
