@@ -70,10 +70,12 @@ func (oauth *Oauth) FastOauthWithCache(writer http.ResponseWriter, req *http.Req
 	}
 
 	//触发信任度检查机制
-	//1. 更新redis中本人的访问时间
-	//2. 5s中之后检查本人的消息回调的记录是否存在，不存在的话，此openid的信任度-20
-	//快速登录检查扣分3次，回调检查扣分2次，快速登录扣分1次+回调扣分一次，信任度< 50，将会无法使用快速登录，等到缓存过期又可以重新使用快速登录
-	go oauth.ChangeUserOpenidWeight(user.GetOpenID())
+	if oauth.Context.FastOauthConfirm {
+		//1. 更新redis中本人的访问时间
+		//2. 5s中之后检查本人的消息回调的记录是否存在，不存在的话，此openid的信任度-20
+		//快速登录检查扣分3次，回调检查扣分2次，快速登录扣分1次+回调扣分一次，信任度< 50，将会无法使用快速登录，等到缓存过期又可以重新使用快速登录
+		go oauth.ChangeUserOpenidWeight(user.GetOpenID())
+	}
 
 
 	f()

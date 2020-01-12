@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+const OpenIDWeightExpireTime  = 6*24*3600*time.Second  //过期时间半年
+
 func (oauth *Oauth) ChangeUserOpenidWeight(loginOpenid string) {
 	defer func() {
 		nerr := recover()
@@ -66,7 +68,7 @@ func (oauth *Oauth) SetInitUserOpenidWeight(loginOpenid string) error {
 
 	//重新授权登录获取到的openid，信任度初始值为100
 	weightKey := "openidweight:" + loginOpenid
-	err = redisCache.Set(weightKey, "100", 0)
+	err = redisCache.Set(weightKey, "100", OpenIDWeightExpireTime)
 	if err != nil {
 		return err
 	}

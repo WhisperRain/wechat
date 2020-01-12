@@ -8,6 +8,11 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
+const (
+	Network4GHoldTime=12*3600*time.Second  //粗略估计设备在某一个移动网络下ip保持不变的时间
+	NetworkWifiHoldTime=30*24*3600*time.Second //粗略估计设备在某一个wifi网络下ip保持不变的时间
+)
+
 //Redis redis cache
 type Redis struct {
 	conn *redis.Pool
@@ -153,11 +158,11 @@ func (r *Redis) HSetWxUser(ip, agentKey string, user interface{}) error {
 	//提交事务
 	if exist {
 
-		//if手机网络为4G等等， 过期时间2天， expireTime过期时间应当近似等于ip的变化周期的两倍。
-		expireTime := 2 * 24 * 3600 * time.Second
+		//if手机网络为4G等等， 过期时间2*12小时， expireTime过期时间应当近似等于ip的变化周期的两倍。
+		expireTime := 2 *Network4GHoldTime
 		//if手机网络为wifi， 过期时间 2*30天
 		if strings.Contains(agentKey, "NetType/WIFI") {
-			expireTime = 2 * 30 * 24 * 3600 * time.Second
+			expireTime = 2 * NetworkWifiHoldTime
 		}
 
 		//pl := RedisClient.TxPipeline()
