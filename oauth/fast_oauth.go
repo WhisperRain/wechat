@@ -5,12 +5,13 @@ import (
 	"github.com/WhisperRain/wechat/cache"
 	"log"
 	"net/http"
+	"reflect"
 	"strings"
 )
 
 type Direction struct {
 	Ip, RedirectURI, Scope, State string
-	OutsideMenu bool //在公众号菜单外面打开，没有微官方的回调
+	OutsideMenu bool //在公众号菜单外面打开，没有微信官方的回调
 }
 
 type OauthUser interface {
@@ -29,53 +30,56 @@ func (oauth *Oauth) GetRedisFromCache() (*cache.Redis, error) {
 
 //最快获取微信用户信息的跳转方法
 //user 必须是指针类型
-func (oauth *Oauth) FastOauthWithCache(writer http.ResponseWriter, req *http.Request, m Direction,user OauthUser, f func()) {
+func (oauth *Oauth) FastOauthWithCache(writer http.ResponseWriter, req *http.Request, m Direction,user OauthUser, f func())error {
+	userType := reflect.TypeOf(user)
+	if userType.Kind()!=reflect.Ptr {
+		return errors.New("user must be kind of pointer")
+	}
+
 	redisCache, err := oauth.GetRedisFromCache()
 	if err != nil {
-		return
+		return err
 	}
 
 	agentKey, exist := FilterRedisKeyOfUserAgent(req)
 	if !exist {
-		_ = oauth.Redirect(writer, req, m.RedirectURI, m.Scope, m.State)
-		return
+ 		return oauth.Redirect(writer, req, m.RedirectURI, m.Scope, m.State)
 	}
-
 
 	err1 := redisCache.HGet(m.Ip, agentKey, user)
 	if err1 != nil {
 		log.Println(err1)
-		_ = oauth.Redirect(writer, req, m.RedirectURI, m.Scope, m.State)
-		return
+		return oauth.Redirect(writer, req, m.RedirectURI, m.Scope, m.State)
+
 	}
 
 	if len(user.GetOpenID()) == 0 {
-		_ = oauth.Redirect(writer, req, m.RedirectURI, m.Scope, m.State)
-		return
+		return oauth.Redirect(writer, req, m.RedirectURI, m.Scope, m.State)
+
 	}
 
 	// 取出openid对应的信任度
 	weight, err2 := oauth.getOpenidWeight(user.GetOpenID())
 	if err2 != nil {
 		log.Println(err2)
-		_ = oauth.Redirect(writer, req, m.RedirectURI, m.Scope, m.State)
-		return
+		return oauth.Redirect(writer, req, m.RedirectURI, m.Scope, m.State)
+
 	}
 	if weight < 50 {
-		_ = oauth.Redirect(writer, req, m.RedirectURI, m.Scope, m.State)
-		return
+		return oauth.Redirect(writer, req, m.RedirectURI, m.Scope, m.State)
+
 	}
 
 	//触发信任度检查机制
 	if oauth.Context.CallBackConfirm && m.OutsideMenu {
-		//1. 更新redis中本人的访问时间
-		//2. 5s中之后检查本人的消息回调的记录是否存在，不存在的话，此openid的信任度-20
+		//5s中之后检查本人的消息回调的记录是否存在，不存在的话，此openid的信任度-20
 		//快速登录检查扣分3次，回调检查扣分3次, 信任度< 50，将会无法使用快速登录，等到缓存过期又可以重新使用快速登录
 		go oauth.ChangeUserOpenidWeight(user.GetOpenID())
 	}
 
 
 	f()
+	return nil
 }
 
 func (oauth *Oauth) SaveOauthUserInfoToRedis(req *http.Request, ip string, user OauthUser) error{

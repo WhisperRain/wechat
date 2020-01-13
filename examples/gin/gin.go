@@ -78,9 +78,10 @@ func PersonCenterOauthBegin(c *gin.Context) {
 	}
 	var user WechatUser
 	//快速授权登录成功，直接执行成功以后的模块
-	Wc.GetOauth().FastOauthWithCache(c.Writer, c.Request, m, user, func() {
+	Wc.GetOauth().FastOauthWithCache(c.Writer, c.Request, m, &user, func() {
 		OperationAfterOauthSuccess(c, user)
 	})
+
 
 }
 
