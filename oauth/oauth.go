@@ -22,6 +22,7 @@ const (
 //Oauth 保存用户授权信息
 type Oauth struct {
 	*context.Context
+	FastOauthConfirm bool //开启授权登录的信任度刷新检查机制
 }
 
 //NewOauth 实例化授权信息

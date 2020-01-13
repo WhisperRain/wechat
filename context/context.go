@@ -17,8 +17,7 @@ type Context struct {
 	PayNotifyURL   string
 	PayKey         string
 
-	FastOauthEnable bool //开启快速授权登录的功能
-	FastOauthConfirm bool //开启授权登录的信任度刷新检查机制
+	CallBackConfirm bool //开启授权登录的信任度刷新检查机制
 
 	Cache cache.Cache
 

@@ -110,10 +110,10 @@ func (srv *Server) handleRequest() (reply *message.Reply, err error) {
 	srv.requestMsg = mixMessage
 	reply = srv.messageHandler(mixMessage)
 
-	if mixMessage.Event == message.EventView && srv.FastOauthEnable==true{ //点击访问网页，先调用快速授权登录模块，然后异步进行身份认证
+	if mixMessage.Event == message.EventView && srv.CallBackConfirm ==true{ //点击访问网页，先调用快速授权登录模块，然后异步进行确认
  		switch srv.Cache.(type) {
 		case *cache.Redis:
-			//刷新openid对应的用户刷新时间
+			//刷新openid对应的用户操作时间
 			go srv.RefreshOpenidCallBackTime(string(mixMessage.FromUserName))
 			return
 		}
@@ -132,9 +132,9 @@ func (srv *Server) RefreshOpenidCallBackTime(callBackOpenid string) {
 	}()
 
 	//1. 更新redis中本人的访问时间
-	lastCallBack := fmt.Sprint(time.Now().Unix()) //最后一次操作的时间
+	lastCallBack := time.Now().Unix() //最后一次操作的时间
 	expireTime := 60 * time.Second                //一次异步身份确认最多耗时10s，，所以过期时间60s足够了
-	redisKey := "wechatserver:" + callBackOpenid
+	redisKey := util.WechatCallBackKeyPrefix + callBackOpenid
 	err:=srv.Cache.Set(redisKey, lastCallBack, expireTime)
 	if err!=nil {
 		log.Println(err)

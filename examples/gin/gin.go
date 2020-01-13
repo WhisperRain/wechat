@@ -7,6 +7,7 @@ import (
 	"github.com/WhisperRain/wechat/message"
 	"github.com/WhisperRain/wechat/oauth"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 )
 
@@ -26,7 +27,7 @@ var Wc = wechat.NewWechat(&wechat.Config{
 })
 
 func init() {
-	Wc.Context.FastOauthEnable = true
+	Wc.Context.CallBackConfirm = true
 }
 
 func main() {
@@ -117,7 +118,17 @@ func PersonCenterOauthSuccess(c *gin.Context) {
 	//如果想要缓存手机号的话，可以创建userInfo的子类，在子类加入字段手机号
 
 	//保存授权登录获取的用户信息到缓存
-	go o.SaveOauthUserInfoToRedis(c.Request, c.ClientIP(), userInfo)
+	go func() {
+		defer func() {
+			if e := recover(); e != nil {
+				log.Println(fmt.Errorf("panic error: err=%v", e))
+				return
+			}
+		}()
+
+		err= o.SaveOauthUserInfoToRedis(c.Request, c.ClientIP(), userInfo)
+		log.Println(err)
+	}()
 
 	OperationAfterOauthSuccess(c, userInfo)
 }
