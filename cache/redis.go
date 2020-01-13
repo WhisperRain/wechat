@@ -156,7 +156,7 @@ func (r *Redis) HSetWxUser(ip, agentKey string, user interface{}) error {
 	//1.设置 hash map 字段初始值
 	//2.设置过期时间
 	//提交事务
-	if exist {
+	if !exist {
 
 		//if手机网络为4G等等， 过期时间2*12小时， expireTime过期时间应当近似等于ip的变化周期的两倍。
 		expireTime := 2 *Network4GHoldTime
@@ -172,7 +172,7 @@ func (r *Redis) HSetWxUser(ip, agentKey string, user interface{}) error {
 
 		_ = conn.Send("MULTI")
 		_ = conn.Send("HSET", ip, agentKey, data)
-		_ = conn.Send("EXPIRE", int64(expireTime))
+		_ = conn.Send("EXPIRE", int64(expireTime/time.Second))
 		_, err := conn.Do("EXEC")
 		if err != nil {
 			return err
